@@ -8,7 +8,7 @@ export function construct_dialog_map(tokens) {
   let character = "";
   let scene_index = -1;
 
-  tokens.reduce(function name(acc, token, index) {
+  return tokens.reduce(function name(acc, token, index) {
     if (token.type === "scene_heading") {
       scene_index = index;
     }
@@ -28,5 +28,44 @@ export function construct_dialog_map(tokens) {
     }
     return acc;
   }, dialog_map);
+
+}
+
+// saves the dialog changes from dialog_map into tokens
+// and returns new token array
+export function apply_dialog_changes(tokens, dialog_map) {
+  let output = JSON.parse(JSON.stringify(tokens)); 
+  dialog_map.forEach(function (dialog_array) {
+    dialog_array.forEach(function (dialog_info) {
+      if (dialog_info.current_dialogue !== dialog_info.new_dialogue) {
+        output[dialog_info.token_index].text = dialog_info.new_dialogue;
+      }
+    })
+  });
+  return output;
+}
+
+// Retrieves the tokens belonging to the scene at index
+export function get_scene_tokens(tokens, index) {
+  let rest = tokens.slice(index);
+
+  const is_scene_heading = (token) => token.type === "scene_heading";
+
+  let next_scene_index = 0;
+
+  for (let index = 0; index < rest.length; index++) {
+    const token = rest[index];
+    if (is_scene_heading(token)) {
+      next_scene_index = index;
+      break;
+    }
+  }
+
+  if (next_scene_index === 0) {
+    return rest;
+  }
+  else {
+    return rest.slice(0, next_scene_index);
+  }
 
 }
