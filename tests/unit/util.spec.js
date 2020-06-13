@@ -289,4 +289,55 @@ describe('get_scene_tokens', () => {
 
   });
 
+  test('first_scene', () => {
+    const expectedOutput = [{
+      type: 'scene_heading',
+      text: "EXT. BRICK'S PATIO - DAY",
+      scene_number: undefined
+    },
+    {
+      type: 'action',
+      text: 'A gorgeous day.  The sun is shining.  But BRICK BRADDOCK, retired police detective, is sitting quietly, contemplating -- something.'
+    },
+    {
+      type: 'action',
+      text: 'The SCREEN DOOR slides open and DICK STEEL, his former partner and fellow retiree, emerges with two cold beers.'
+    },
+    { type: 'dialogue_begin', dual: undefined },
+    { type: 'character', text: 'STEEL' },
+    { type: 'dialogue', text: "Beer's ready!" },
+    { type: 'dialogue_end' },
+    { type: 'dialogue_begin', dual: undefined },
+    { type: 'character', text: 'BRICK' },
+    { type: 'dialogue', text: 'Are they cold?' },
+    { type: 'dialogue_end' },
+    { type: 'action', text: 'Steel sits.  They laugh at the dumb joke.' },
+    { type: 'dialogue_begin', dual: undefined },
+    { type: 'character', text: 'STEEL' },
+    { type: 'parenthetical', text: '(beer raised)' },
+    { type: 'dialogue', text: 'To retirement.' },
+    { type: 'dialogue_end' },
+    { type: 'dialogue_begin', dual: undefined },
+    { type: 'character', text: 'BRICK' },
+    { type: 'dialogue', text: 'To retirement.' },
+    { type: 'dialogue_end' },
+    { type: 'action', text: 'They drink long and well from the beers.' },
+    {
+      type: 'action',
+      text: "And then there's a long beat.\n \nThe men look at each other."
+    },
+    { type: 'dialogue_begin', dual: undefined },
+    { type: 'character', text: 'STEEL' },
+    { type: 'dialogue', text: 'Screw retirement.' },
+    { type: 'dialogue_end' },
+    { type: 'dialogue_begin', dual: undefined },
+    { type: 'character', text: 'BRICK' },
+    { type: 'dialogue', text: 'Screw retirement.' },
+    { type: 'dialogue_end' },
+    { type: 'transition', text: 'SMASH CUT TO:' },
+   ]
+
+    expect(get_scene_tokens(tokens, 0)).toEqual(expectedOutput);
+
+  });
 });

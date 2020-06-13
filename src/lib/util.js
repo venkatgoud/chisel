@@ -53,14 +53,13 @@ export function get_scene_tokens(tokens, index) {
 
   let next_scene_index = 0;
 
-  for (let index = 0; index < rest.length; index++) {
-    const token = rest[index];
-    if (is_scene_heading(token)) {
-      next_scene_index = index;
+  for (let i = 1; i < rest.length; i++) {
+    const token = rest[i];
+    if (is_scene_heading(token)) {       
+      next_scene_index = i;
       break;
     }
-  }
-
+  }   
   if (next_scene_index === 0) {
     return rest;
   }
