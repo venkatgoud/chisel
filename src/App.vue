@@ -17,15 +17,15 @@
           />
         </svg>
         <span class="mt-1 text-base leading-normal">Load screenplay</span>
-        <input type="file" class="hidden" />
+        <input type="file" class="hidden" name="inputfile" ref="inputFiles" @change="onFileChange" />
       </label>
     </div>
-    <div class="flex mx-10 my-6">
+    <div v-show="isFileLoaded" class="flex mx-10 my-6">
       <div class="w-1/2">
-        <DialogEditor :tokens="tokens" @save="onSave" @show_scene="onShowScene"/>
+        <DialogEditor :tokens="tokens" @save="onSave" @show_scene="onShowScene" />
       </div>
       <div class="w-1/2">
-        <FountainViewer :tokens="displayTokens" />
+        <FountainViewer :tokens="displayTokens" @download="download" />
       </div>
     </div>
   </div>
@@ -35,96 +35,80 @@
 import FountainViewer from "./components/FountainViewer.vue";
 import DialogEditor from "./components/DialogEditor.vue";
 import { apply_dialog_changes, get_scene_tokens } from "./lib/util";
-
-const tokens = [
-  {
-    type: "scene_heading",
-    text: "EXT. BRICK'S PATIO - DAY",
-    scene_number: undefined
-  },
-  {
-    type: "action",
-    text:
-      "A gorgeous day.  The sun is shining.  But BRICK BRADDOCK, retired police detective, is sitting quietly, contemplating -- something."
-  },
-  {
-    type: "action",
-    text:
-      "The SCREEN DOOR slides open and DICK STEEL, his former partner and fellow retiree, emerges with two cold beers."
-  },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "STEEL" },
-  { type: "dialogue", text: "Beer's ready!" },
-  { type: "dialogue_end" },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "BRICK" },
-  { type: "dialogue", text: "Are they cold?" },
-  { type: "dialogue_end" },
-  { type: "action", text: "Steel sits.  They laugh at the dumb joke." },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "STEEL" },
-  { type: "parenthetical", text: "(beer raised)" },
-  { type: "dialogue", text: "To retirement." },
-  { type: "dialogue_end" },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "BRICK" },
-  { type: "dialogue", text: "To retirement." },
-  { type: "dialogue_end" },
-  { type: "action", text: "They drink long and well from the beers." },
-  {
-    type: "action",
-    text: "And then there's a long beat.\n \nThe men look at each other."
-  },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "STEEL" },
-  { type: "dialogue", text: "Screw retirement." },
-  { type: "dialogue_end" },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "BRICK" },
-  { type: "dialogue", text: "Screw retirement." },
-  { type: "dialogue_end" },
-  { type: "transition", text: "SMASH CUT TO:" },
-  {
-    type: "scene_heading",
-    text: "INT. TRAILER HOME - DAY",
-    scene_number: undefined
-  },
-  {
-    type: "action",
-    text:
-      "This is the home of THE BOY BAND, AKA DAN and JACK.  They too are drinking beer, and counting the take from their last smash-and-grab.  "
-  },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "STEEL" },
-  { type: "parenthetical", text: "(in Vietnamese, subtitled)" },
-  {
-    type: "dialogue",
-    text: "*Did you know Brick and Steel are retired?*"
-  },
-  { type: "dialogue_end" },
-  { type: "dialogue_begin", dual: undefined },
-  { type: "character", text: "BRICK" },
-  { type: "dialogue", text: "Then let's retire them.\n_Permanently_." },
-  { type: "dialogue_end" },
-  {
-    type: "action",
-    text: "Jack begins to argue vociferously in Vietnamese\n"
-  }
-];
+import { parse } from "fountain-parser";
+import { saveAs } from "file-saver";
 
 export default {
   name: "App",
   data: function() {
-    return { tokens: tokens, displayTokens: [], displayScene: 0 };
+    return {
+      fileName: "No file chosen",
+      isFileLoaded: false,
+      fountain: "",
+      tokens: [],
+      displayTokens: [],
+      displayScene: 0
+    };
   },
   methods: {
-    onSave(dialog_map) {       
-      this.tokens = apply_dialog_changes(tokens, dialog_map);
+    download: function() {
+      let content = "";
+      let prevToken = "";
+      this.tokens.forEach(token => {
+        switch (token.type) {
+          case "scene_heading":
+          case "action":
+          case "transition":
+            content = content + "\n" + token.text + "\n";
+            break;
+          case "character":
+          case "dialogue":
+          case "parenthetical":
+            content += token.text + "\n";
+            break;
+          case "dialogue_begin":
+            if (
+              prevToken !== "scene_heading" ||
+              prevToken !== "action" ||
+              prevToken !== "dialogue_end"
+            )
+              content += "\n";
+            break;
+          default:
+            break;
+        }
+        prevToken = token.type;
+      });
+      var blob = new Blob([content], {
+        type: "text/plain;charset=utf-8"
+      });
+      saveAs(blob, this.fileName);
+    },
+    onFileChange: function() {
+      if (this.$refs.inputFiles.files.length > 0) {
+        const file = this.$refs.inputFiles.files[0];
+        this.fileName = file.name;
+        var fileReader = new FileReader();
+        const _instance = this;
+        fileReader.onload = function(evt) {
+          _instance.isFileLoaded = true;
+          _instance.fountain = evt.target.result;
+
+          parse(_instance.fountain, output => {
+            _instance.tokens = output.tokens;
+            _instance.displayTokens = output.tokens;
+          });
+        };
+        fileReader.readAsText(file);
+      }
+    },
+    onSave(dialog_map) {
+      this.tokens = apply_dialog_changes(this.tokens, dialog_map);
       this.onShowScene(this.displayScene);
     },
-    onShowScene(scene) {       
+    onShowScene(scene) {
       this.displayScene = scene;
-      this.displayTokens = get_scene_tokens(this.tokens, scene);      
+      this.displayTokens = get_scene_tokens(this.tokens, scene);
     }
   },
   components: {

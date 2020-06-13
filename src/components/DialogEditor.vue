@@ -9,24 +9,22 @@
           id="character"
         >
           <option disabled value>Choose character</option>
-          <option v-for="c in dialog_map.keys()" :key="c" :value="c">{{c}}</option>
+          <option v-for="c in Object.keys(dialog_map)" :key="c" :value="c">{{c}}</option>
         </select>
       </div>
       <div>
         <button
+          v-show="dirty"
           v-on:click="save"
           class="border border-blue-400 hover:bg-blue-600 hover:text-white text-blue-600 py-2 px-4 rounded inline-flex items-center"
         >
-          <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-            <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
-          </svg>
           <span>Save Changes</span>
         </button>
       </div>
     </div>
     <div
       v-for="(scene_dialogs, scene) in char_dialogs"
-      :key="scene"  
+      :key="scene"
       class="border-l-2 border-blue-400 px-4 my-4"
     >
       <div class="flex justify-end">
@@ -50,10 +48,11 @@
       </div>
       <input
         v-for="dialog in scene_dialogs"
-        :key=dialog.token_index
+        :key="dialog.token_index"
         v-model="dialog.new_dialogue"
-        class="bg-white focus:outline-none focus:shadow-xs border border-gray-100 rounded-md my-1 py-2 px-4 block w-full appearance-none leading-normal"
-        type="text"      
+        v-on:input="dirty=true"
+        class="appearance-none bg-transparent border-none w-full leading-normal focus:outline-none focus:shadow-xs my-1 py-2 px-4 block w-full"         
+        type="text"
       />
     </div>
   </div>
@@ -70,8 +69,8 @@ export default {
   methods: {
     onCharacterSelection: function(event) {
       this.character = event.target.value;
-      this.dialogs = this.dialog_map.get(this.character);    
-      this.char_dialogs = this.groupByScene();   
+      this.dialogs = this.dialog_map[this.character];
+      this.char_dialogs = this.groupByScene();
     },
     groupByScene: function() {
       return this.dialogs.reduce(function(acc, current, index) {
@@ -83,19 +82,20 @@ export default {
         let scene_dialogs = acc[current.scene_heading_index] || [];
         scene_dialogs.push(current);
         acc[current.scene_heading_index] = scene_dialogs;
-        
+
         return acc;
       }, Object.create(null));
     },
-    save: function() {       
-      this.$emit('save', this.dialog_map)
+    save: function() {
+      this.$emit("save", this.dialog_map);
+      this.dirty = false;
     },
     showScene: function(scene) {
-      this.$emit('show_scene', scene)
+      this.$emit("show_scene", scene);
     }
   },
   data: function() {
-    return { character: "", dialogs: [], char_dialogs: {} , dirty: false };
+    return { character: "", dialogs: [], char_dialogs: {}, dirty: false };
   },
   computed: {
     dialog_map: function() {

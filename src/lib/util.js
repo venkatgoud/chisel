@@ -1,8 +1,8 @@
-// takes token array from fountain parser and returns a Map 
+// takes token array from fountain parser and returns an Object 
 // key: character value: array of dialog_info  
 export function construct_dialog_map(tokens) {
 
-  let dialog_map = new Map();
+  let dialog_map = Object.create(null);
   if (tokens.length === 0) return dialog_map;
 
   let character = "";
@@ -19,9 +19,9 @@ export function construct_dialog_map(tokens) {
         current_dialogue: token.text,
         new_dialogue: token.text
       };
-      let dialog_array = acc.get(character) || [];
+      let dialog_array = acc[character] || [];
       dialog_array.push(dialog_info);
-      acc.set(character, dialog_array);
+      acc[character] = dialog_array;
     }
     else if (token.type === "character") {
       character = token.text;
@@ -34,8 +34,11 @@ export function construct_dialog_map(tokens) {
 // saves the dialog changes from dialog_map into tokens
 // and returns new token array
 export function apply_dialog_changes(tokens, dialog_map) {
-  let output = JSON.parse(JSON.stringify(tokens)); 
-  dialog_map.forEach(function (dialog_array) {
+  let output = JSON.parse(JSON.stringify(tokens));
+  let dialogs = Object.entries(dialog_map);
+
+  dialogs.forEach(function (entry) {
+    const dialog_array = entry[1];
     dialog_array.forEach(function (dialog_info) {
       if (dialog_info.current_dialogue !== dialog_info.new_dialogue) {
         output[dialog_info.token_index].text = dialog_info.new_dialogue;
@@ -55,11 +58,11 @@ export function get_scene_tokens(tokens, index) {
 
   for (let i = 1; i < rest.length; i++) {
     const token = rest[i];
-    if (is_scene_heading(token)) {       
+    if (is_scene_heading(token)) {
       next_scene_index = i;
       break;
     }
-  }   
+  }
   if (next_scene_index === 0) {
     return rest;
   }

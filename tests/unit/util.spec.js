@@ -75,7 +75,7 @@ const tokens = [
 
 describe('construct_dialog_map tests', () => {
   test('sanity', () => {
-    const expectedOutput = new Map();
+    const expectedOutput = Object.create(null);
     const steel = [{
       token_index: 5,
       scene_heading_index: 0,
@@ -123,8 +123,8 @@ describe('construct_dialog_map tests', () => {
     ]
 
 
-    expectedOutput.set("STEEL", steel);
-    expectedOutput.set("BRICK", brick);
+    expectedOutput["STEEL"] = steel;
+    expectedOutput["BRICK"] = brick;
     expect(construct_dialog_map(tokens)).toEqual(expectedOutput);
   });
 }
@@ -132,7 +132,7 @@ describe('construct_dialog_map tests', () => {
 
 describe('apply_dialog_changes tests', () => {
   test('sanity', () => {
-    const dialog_map = new Map();
+    const dialog_map = Object.create(null);
     const steel = [{
       token_index: 5,
       scene_heading_index: 0,
@@ -178,8 +178,8 @@ describe('apply_dialog_changes tests', () => {
       new_dialogue: "Then let's retire them.\n_Permanently_."
     }
     ]
-    dialog_map.set("STEEL", steel);
-    dialog_map.set("BRICK", brick);
+    dialog_map["STEEL"] = steel;
+    dialog_map["BRICK"] = brick;
     const expectedOutput = [
       {
         type: 'scene_heading',

@@ -2,6 +2,7 @@
   <div class="px-2 mx-1">
     <div class="flex justify-start">
       <button
+      v-on:click='download'
         class="border border-blue-400 hover:bg-blue-600 hover:text-white text-blue-600 py-2 px-4 rounded inline-flex items-center"
       >
         <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -23,6 +24,9 @@
 export default {
   name: "FountainViewer",
   methods: {
+    download: function() {
+      this.$emit("download");
+    },
     cssClass: function(token) {
       switch (token.type) {
         case "scene_heading":
